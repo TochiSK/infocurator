@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>インフォキュレーター</title>
+<style>
+  :root {
+    --bg: #f7f6f3;
+    --surface: #ffffff;
+    --border: rgba(0,0,0,0.08);
+    --border-strong: rgba(0,0,0,0.15);
+    --text: #1a1a1a;
+    --text-muted: #6b6b6b;
+    --text-faint: #aaaaaa;
+    --purple: #534AB7;
+    --purple-light: #EEEDFE;
+    --purple-text: #3C3489;
+    --teal: #1D9E75;
+    --teal-light: #E1F5EE;
+    --teal-text: #085041;
+    --amber: #BA7517;
+    --amber-light: #FAEEDA;
+    --amber-text: #633806;
+    --pink: #D4537E;
+    --pink-light: #FBEAF0;
+    --pink-text: #72243E;
+    --radius: 10px;
+    --radius-sm: 6px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'Helvetica Neue', Arial, sans-serif; font-size: 14px; line-height: 1.6; min-height: 100vh; }
+
+  /* ヘッダー */
+  .header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 0 1.5rem; display: flex; align-items: center; justify-content: space-between; height: 52px; position: sticky; top: 0; z-index: 50; }
+  .header-left { display: flex; align-items: center; gap: 1rem; }
+  .logo { font-size: 15px; font-weight: 600; color: var(--text); letter-spacing: -0.3px; }
+  .tabs { display: flex; gap: 2px; }
+  .tab { padding: 5px 12px; border-radius: var(--radius-sm); border: none; background: transparent; font-size: 13px; color: var(--text-muted); cursor: pointer; transition: all 0.15s; }
+  .tab:hover { background: var(--bg); color: var(--text); }
+  .tab.active { background: var(--purple-light); color: var(--purple-text); font-weight: 500; }
+  .header-right { display: flex; align-items: center; gap: 8px; }
+
+  /* メインレイアウト */
+  .main { max-width: 900px; margin: 0 auto; padding: 1.5rem; }
+
+  /* ツールバー */
+  .toolbar { display: flex; gap: 8px; margin-bottom: 1rem; flex-wrap: wrap; }
+  .search-input { flex: 1; min-width: 200px; padding: 8px 12px; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); font-size: 13px; background: var(--surface); color: var(--text); outline: none; transition: border-color 0.15s; }
+  .search-input:focus { border-color: var(--purple); }
+  .btn { padding: 7px 14px; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); background: var(--surface); font-size: 13px; color: var(--text); cursor: pointer; transition: all 0.15s; white-space: nowrap; }
+  .btn:hover { background: var(--bg); }
+  .btn.primary { background: var(--text); color: #fff; border-color: var(--text); }
+  .btn.primary:hover { opacity: 0.85; }
+
+  /* タグフィルター */
+  .tag-row { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 1.25rem; }
+  .filter-tag { padding: 4px 12px; border-radius: 99px; font-size: 12px; cursor: pointer; border: 1px solid var(--border-strong); background: var(--surface); color: var(--text-muted); transition: all 0.15s; }
+  .filter-tag:hover { border-color: var(--purple); color: var(--purple-text); }
+  .filter-tag.active { background: var(--purple-light); color: var(--purple-text); border-color: #AFA9EC; font-weight: 500; }
+
+  /* カード */
+  .cards { display: grid; gap: 10px; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem 1.25rem; transition: border-color 0.15s; }
+  .card:hover { border-color: var(--border-strong); }
+  .card-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 3px; }
+  .card-title { font-size: 14px; font-weight: 500; line-height: 1.4; flex: 1; }
+  .card-title a { color: var(--text); text-decoration: none; }
+  .card-title a:hover { color: var(--purple); text-decoration: underline; }
+  .card-source { font-size: 11px; color: var(--text-faint); margin-bottom: 6px; }
+  .card-summary { font-size: 13px; color: var(--text-muted); line-height: 1.6; margin-bottom: 10px; }
+  .card-tags { display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 10px; }
+  .ctag { padding: 2px 8px; border-radius: 99px; font-size: 11px; background: var(--purple-light); color: var(--purple-text); }
+  .card-footer { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+  .card-actions { display: flex; gap: 6px; }
+  .abtn { display: flex; align-items: center; gap: 3px; padding: 4px 10px; border-radius: var(--radius-sm); border: 1px solid var(--border-strong); background: transparent; font-size: 12px; color: var(--text-muted); cursor: pointer; transition: all 0.15s; }
+  .abtn:hover { background: var(--bg); }
+  .badge { display: inline-flex; align-items: center; gap: 3px; padding: 2px 7px; border-radius: 99px; font-size: 11px; margin-left: 5px; }
+  .badge.ai { background: var(--teal-light); color: var(--teal-text); }
+
+  /* ローディング */
+  .loading { text-align: center; padding: 3rem; color: var(--text-muted); font-size: 13px; }
+  .empty { text-align: center; padding: 3rem; color: var(--text-faint); font-size: 13px; }
+
+  /* チーム動向 */
+  .act-row { display: flex; align-items: flex-start; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--border); }
+  .act-row:last-child { border-bottom: none; }
+  .act-av { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 500; flex-shrink: 0; }
+  .act-text { font-size: 13px; color: var(--text-muted); line-height: 1.5; }
+  .act-text strong { color: var(--text); font-weight: 500; }
+  .act-time { font-size: 11px; color: var(--text-faint); margin-top: 2px; }
+
+  /* モーダル */
+  .modal-bg { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 100; align-items: center; justify-content: center; }
+  .modal-bg.open { display: flex; }
+  .modal { background: var(--surface); border-radius: var(--radius); padding: 1.5rem; width: min(460px, 90vw); border: 1px solid var(--border); }
+  .modal h2 { font-size: 15px; font-weight: 600; margin-bottom: 1rem; }
+  .field { margin-bottom: 12px; }
+  .field label { font-size: 12px; color: var(--text-muted); display: block; margin-bottom: 4px; }
+  .field input, .field textarea { width: 100%; padding: 8px 10px; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); font-size: 13px; color: var(--text); background: var(--surface); outline: none; }
+  .field input:focus, .field textarea:focus { border-color: var(--purple); }
+  .field textarea { resize: vertical; min-height: 60px; }
+  .modal-footer { display: flex; gap: 8px; justify-content: flex-end; margin-top: 1rem; }
+  .hint { font-size: 12px; color: var(--text-faint); }
+
+  /* セクションラベル */
+  .slabel { font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 10px; }
+
+  /* タブコンテンツ */
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <div class="logo">インフォキュレーター</div>
+    <div class="tabs">
+      <button class="tab active" onclick="switchTab('feed', this)">フィード</button>
+      <button class="tab" onclick="switchTab('team', this)">チーム動向</button>
+    </div>
+  </div>
+  <div class="header-right">
+    <button class="btn primary" onclick="document.getElementById('add-modal').classList.add('open')">+ URLを追加</button>
+  </div>
+</div>
+
+<div class="main">
+
+  <!-- フィード -->
+  <div id="tab-feed" class="tab-content active">
+    <div class="toolbar">
+      <input type="text" class="search-input" id="search-input" placeholder="キーワードで検索..." oninput="filterCards()">
+    </div>
+    <div class="tag-row" id="tag-row">
+      <span class="filter-tag active" onclick="setTag(this,'all')">すべて</span>
+    </div>
+    <div class="cards" id="cards-container">
+      <div class="loading">記事を読み込み中...</div>
+    </div>
+  </div>
+
+  <!-- チーム動向 -->
+  <div id="tab-team" class="tab-content">
+    <div class="slabel">最近の更新</div>
+    <div id="team-list"></div>
+  </div>
+
+</div>
+
+<!-- URL追加モーダル -->
+<div class="modal-bg" id="add-modal" onclick="if(event.target===this)this.classList.remove('open')">
+  <div class="modal">
+    <h2>記事を追加</h2>
+    <div class="field">
+      <label>URL</label>
+      <input type="text" id="new-url" placeholder="https://...">
+    </div>
+    <div class="field">
+      <label>メモ（任意）</label>
+      <textarea id="new-memo" placeholder="気になったポイントなど"></textarea>
+    </div>
+    <p class="hint">💡 MakeのWebhook URLに送信します。AIが自動で要約・タグ付けします。</p>
+    <div class="modal-footer">
+      <button class="btn" onclick="document.getElementById('add-modal').classList.remove('open')">キャンセル</button>
+      <button class="btn primary" onclick="submitURL()">追加する</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ========================================
+// 設定（ここを変更してください）
+// ========================================
+const NOTION_TOKEN = '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';
+const DATABASE_ID = '343c33c4017580a29d21eb6295e46afd';
+const WEBHOOK_URL = 'https://hook.eu1.make.com/mk99ql3p2od7cvvwyk8mypawmrmii91f';
+// ========================================
+
+let allArticles = [];
+let activeTag = 'all';
+
+// Notion APIから記事を取得
+async function fetchArticles() {
+  try {
+    const res = await fetch(`https://api.notion.com/v1/databases/${DATABASE_ID}/query`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${NOTION_TOKEN}`,
+        'Notion-Version': '2022-06-28',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ sorts: [{ timestamp: 'created_time', direction: 'descending' }] })
+    });
+    const data = await res.json();
+    allArticles = data.results.map(page => ({
+      id: page.id,
+      title: page.properties['記事タイトル']?.title?.[0]?.text?.content || 'タイトルなし',
+      url: page.properties['URL']?.url || '',
+      summary: page.properties['summary']?.rich_text?.[0]?.text?.content || '',
+      tags: page.properties['タグ']?.multi_select?.map(t => t.name) || [],
+      date: page.created_time,
+    }));
+    renderTagRow();
+    filterCards();
+    renderTeam();
+  } catch (e) {
+    document.getElementById('cards-container').innerHTML = '<div class="empty">記事の読み込みに失敗しました。<br>設定を確認してください。</div>';
+  }
+}
+
+function getDomain(url) {
+  try { return new URL(url).hostname.replace('www.',''); } catch { return url; }
+}
+
+function timeAgo(dateStr) {
+  const diff = (Date.now() - new Date(dateStr)) / 1000;
+  if (diff < 3600) return Math.floor(diff/60) + '分前';
+  if (diff < 86400) return Math.floor(diff/3600) + '時間前';
+  return Math.floor(diff/86400) + '日前';
+}
+
+function renderCards(list) {
+  const c = document.getElementById('cards-container');
+  if (!list.length) { c.innerHTML = '<div class="empty">該当する記事がありません</div>'; return; }
+  c.innerHTML = list.map(a => `
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">
+          <a href="${a.url}" target="_blank">${a.title}</a>
+          <span class="badge ai">AI</span>
+        </div>
+      </div>
+      <div class="card-source">${getDomain(a.url)} · ${timeAgo(a.date)}</div>
+      ${a.summary ? `<div class="card-summary">${a.summary}</div>` : ''}
+      ${a.tags.length ? `<div class="card-tags">${a.tags.map(t=>`<span class="ctag">${t}</span>`).join('')}</div>` : ''}
+      <div class="card-footer">
+        <div class="card-actions">
+          <button class="abtn" onclick="window.open('${a.url}','_blank')">元記事を開く</button>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function filterCards() {
+  const q = document.getElementById('search-input').value.toLowerCase();
+  let list = allArticles;
+  if (activeTag !== 'all') list = list.filter(a => a.tags.includes(activeTag));
+  if (q) list = list.filter(a => a.title.toLowerCase().includes(q) || a.summary.toLowerCase().includes(q) || a.tags.join().toLowerCase().includes(q));
+  renderCards(list);
+}
+
+function renderTagRow() {
+  const tags = ['all', ...new Set(allArticles.flatMap(a => a.tags))];
+  document.getElementById('tag-row').innerHTML = tags.map(t =>
+    `<span class="filter-tag${t===activeTag?' active':''}" onclick="setTag(this,'${t}')">${t==='all'?'すべて':t}</span>`
+  ).join('');
+}
+
+function setTag(el, t) {
+  activeTag = t;
+  renderTagRow();
+  filterCards();
+}
+
+function renderTeam() {
+  const list = allArticles.slice(0, 10);
+  document.getElementById('team-list').innerHTML = list.map(a => `
+    <div class="act-row">
+      <div class="act-av" style="background:#EEEDFE;color:#3C3489">新</div>
+      <div>
+        <div class="act-text">新しい記事が追加されました：<strong>${a.title}</strong></div>
+        <div class="act-time">${timeAgo(a.date)}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+async function submitURL() {
+  const url = document.getElementById('new-url').value.trim();
+  if (!url) return alert('URLを入力してください');
+  try {
+    await fetch(`${WEBHOOK_URL}?url=${encodeURIComponent(url)}`);
+    document.getElementById('add-modal').classList.remove('open');
+    document.getElementById('new-url').value = '';
+    document.getElementById('new-memo').value = '';
+    alert('送信しました！しばらく後にページを更新すると記事が追加されます。');
+  } catch (e) {
+    alert('送信に失敗しました。Webhook URLを確認してください。');
+  }
+}
+
+function switchTab(tab, el) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('tab-' + tab).classList.add('active');
+}
+
+fetchArticles();
+</script>
+</body>
+</html>
