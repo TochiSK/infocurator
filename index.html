@@ -90,8 +90,12 @@
 <div class="main">
   <div id="tab-feed" class="tab-content active">
     <div class="toolbar">
-      <input type="text" class="search-input" id="search-input" placeholder="キーワードで検索..." oninput="filterCards()">
-    </div>
+  <input type="text" class="search-input" id="search-input" placeholder="キーワードで検索..." oninput="filterCards()">
+</div>
+<div class="toolbar" style="margin-bottom:1.25rem;">
+  <input type="text" class="search-input" id="theme-input" placeholder="調べたいテーマを入力... 例：コミュニティマーケティング">
+  <button class="btn primary" onclick="searchTheme()">AIで調べる</button>
+</div>
     <div class="tag-row" id="tag-row">
       <span class="filter-tag active" onclick="setTag(this,'all')">すべて</span>
     </div>
@@ -130,6 +134,19 @@ var DATABASE_ID = '343c33c4017580a29d21eb6295e46afd';
 var WEBHOOK_URL = 'https://hook.eu1.make.com/mk99ql3p2od7cvvwyk8mypawmrmii91f';
 var allArticles = [];
 var activeTag = 'all';
+
+function searchTheme() {
+  var theme = document.getElementById('theme-input').value.trim();
+  if (!theme) { alert('テーマを入力してください'); return; }
+  fetch('https://hook.eu1.make.com/l7xg631e6r2c65gjidpl7x2vjtu5clr8?theme=' + encodeURIComponent(theme))
+  .then(function() {
+    document.getElementById('theme-input').value = '';
+    alert('調査を開始しました！1〜2分後にページを更新すると結果が表示されます。');
+  })
+  .catch(function() { alert('送信に失敗しました。'); });
+}
+
+fetchArticles();
 
 function fetchArticles() {
   fetch(PROXY_URL + '/v1/databases/' + DATABASE_ID + '/query', {
