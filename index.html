@@ -186,10 +186,11 @@ let activeTag = 'all';
 async function fetchArticles() {
   try {
     const res = await fetch(`${PROXY_URL}/v1/databases/${DATABASE_ID}/query`, {
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/json'
-  },: JSON.stringify({ sorts: [{ timestamp: 'created_time', direction: 'descending' }] })
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ sorts: [{ timestamp: 'created_time', direction: 'descending' }] })
     });
     const data = await res.json();
     allArticles = data.results.map(page => ({
